@@ -39,7 +39,7 @@ Fournis donc les règles de gestion et le dictionnaire de données.
 
 **Personnel**
 
-- Chaque employé a un matricule, un nom, un prénom, une date d'embauche et une fonction (pilote, copilote, chef de cabine, hôtesse ou steward, agent d'escale).
+- Chaque employé a un matricule, un nom, un prénom, et une date d'embauche.
 - Chaque employé a un supérieur hiérarchique, qui est lui-même un employé. Seul le directeur des opérations n'en a pas.
 - Pour chaque vol, plusieurs employés sont affectés à bord. Chacun y tient un rôle précis (commandant de bord, officier pilote de ligne, chef de cabine, personnel de cabine). Un même employé peut avoir des rôles différents d'un vol à l'autre, mais un seul rôle sur un vol donné.
 - Un vol doit avoir au moins un commandant de bord et un officier pilote de ligne.
@@ -50,8 +50,7 @@ Fournis donc les règles de gestion et le dictionnaire de données.
 - Une réservation est faite par un passager. Elle a un numéro de 6 caractères et une date de réservation. Une réservation peut regrouper plusieurs billets (famille, amis), mais elle est toujours au nom d'un seul passager.
 - Un billet est identifié par un numéro de 13 chiffres. Il concerne un seul passager, sur un seul vol, dans une seule classe de voyage. Il a un prix payé et un numéro de siège.
 - Sur un vol donné, un siège ne peut être attribué qu'à un seul billet.
-- Les classes de voyage sont Économique, Premium, Affaires et Première. Chaque classe donne droit à un poids de bagage en soute (en kg).
-- Un passager peut avoir une carte de fidélité, identifiée par un numéro de 10 chiffres.
+- Les classes de voyage sont Économique, Premium, Affaires et Première. Chaque billet a une classe et un poids de bagage en soute (en kg), choisi par le passager : il peut prendre un bagage plus léger que ce que sa classe autorise.
 
 ### 1.3 Dictionnaire de données
 
@@ -75,21 +74,35 @@ Fournis donc les règles de gestion et le dictionnaire de données.
 | 16 | Matricule de l'employé | Texte | 6 caractères |
 | 17 | Nom de l'employé | Texte | 40 caractères |
 | 18 | Prénom de l'employé | Texte | 40 caractères |
-| 20 | Fonction de l'employé | Texte | 25 caractères |
-| 21 | Matricule du supérieur hiérarchique | Texte | 6 caractères |
-| 23 | Numéro de passeport du passager | Texte | 9 caractères |
-| 24 | Nom du passager | Texte | 40 caractères |
-| 25 | Prénom du passager | Texte | 40 caractères |
-| 26 | Date de naissance du passager | Date | 10 caractères (JJ/MM/AAAA) |
-| 27 | Email du passager | Texte | 100 caractères |
-| 29 | Numéro de réservation | Texte | 6 caractères |
-| 30 | Date de la réservation | Date | 10 caractères (JJ/MM/AAAA) |
-| 31 | Numéro de billet | Texte | 13 chiffres |
-| 32 | Numéro de siège | Texte | 3 caractères |
-| 33 | Prix payé du billet en euros | Décimal | 7 chiffres dont 2 décimales |
-| 34 | Libellé de la classe de voyage | Texte | 15 caractères |
-| 35 | Poids de bagage en soute inclus en kg | Entier | 2 chiffres |
+| 19 | Date d'embauche de l'employé | Date | 10 caractères (JJ/MM/AAAA) |
+| 20 | Matricule du supérieur hiérarchique | Texte | 6 caractères |
+| 21 | Libellé du rôle à bord | Texte | 30 caractères |
+| 22 | Numéro de passeport du passager | Texte | 9 caractères |
+| 23 | Nom du passager | Texte | 40 caractères |
+| 24 | Prénom du passager | Texte | 40 caractères |
+| 25 | Date de naissance du passager | Date | 10 caractères (JJ/MM/AAAA) |
+| 26 | Email du passager | Texte | 100 caractères |
+| 27 | Numéro de réservation | Texte | 6 caractères |
+| 28 | Date de la réservation | Date | 10 caractères (JJ/MM/AAAA) |
+| 29 | Numéro de billet | Texte | 13 chiffres |
+| 30 | Numéro de siège | Texte | 3 caractères |
+| 31 | Prix payé du billet en euros | Décimal | 7 chiffres dont 2 décimales |
+| 32 | Classe de voyage du billet | Texte | 15 caractères |
+| 33 | Poids de bagage en soute choisi pour le billet, en kg | Entier | 2 chiffres |
+
+> **Modifications par rapport à la réponse de l'IA** : la carte de fidélité du passager (règle de gestion et donnée n° 28 du dictionnaire d'origine) et la fonction de l'employé (règle de gestion et donnée n° 20) ont été retirées, le rôle à bord suffisant à décrire le travail de l'employé sur un vol. Par ailleurs, la classe de voyage et le poids de bagage sont des données propres au billet (le passager choisit son poids de bagage). Le dictionnaire compte donc 33 données.
 
 ## Étape 2 : MCD
 
 **Outil de modélisation utilisé** : draw.io
+
+**Fichier source** : `mcd/ProjetBD.drawio`
+
+![MCD du projet](mcd/ProjetBD.png)
+
+Contraintes (hors cardinalités)
+- AFFECTER : un seul rôle par couple (employé, vol)
+- VOL : au moins 1 commandant de bord et 1 officier pilote de ligne
+- BILLET : un siège n'est attribué qu'une fois par vol
+- LIGNE : aéroport de départ différent de l'aéroport d'arrivée
+- AVION : jamais deux vols simultanés
