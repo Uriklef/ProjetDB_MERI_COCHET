@@ -4,12 +4,11 @@
 **Partie 1** : analyse des besoins et MCD
 
 
-
 ## Étape 1 : Analyse des besoins
 
 ### 1.1 Prompt final (framework RICARDO)
 
-Le prompt part de la base fournie. Seules les parties **Contexte** et **Références** ont été complétées.
+Le prompt part de la base fournie. Seules les parties **Contexte** et **Références** ont été complétées. Le même texte est disponible dans `prompt.txt`.
 
 ```text
 Tu travailles dans le domaine des compagnies aériennes. Ta compagnie a comme activité d’organiser des vols de passagers (court, moyen et long-courrier) entre différents aéroports, avec une flotte d’avions, des équipages et un système de réservation et de vente de billets. C’est une compagnie comme Air France, Ryanair, Air India ou Delta. Inspire-toi des sites web suivants : https://www.airfrance.fr, https://www.ryanair.com, https://www.airindia.com, https://www.delta.com.
@@ -90,17 +89,43 @@ Fournis donc les règles de gestion et le dictionnaire de données.
 | 32 | Classe de voyage du billet | Texte | 15 caractères |
 | 33 | Poids de bagage en soute choisi pour le billet, en kg | Entier | 2 chiffres |
 
-> **Modifications par rapport à la réponse de l'IA** : la carte de fidélité du passager (règle de gestion et donnée n° 28 du dictionnaire d'origine) et la fonction de l'employé (règle de gestion et donnée n° 20) ont été retirées, le rôle à bord suffisant à décrire le travail de l'employé sur un vol. Par ailleurs, la classe de voyage et le poids de bagage sont des données propres au billet (le passager choisit son poids de bagage). Le dictionnaire compte donc 33 données.
+### 1.4 Problèmes relevés et modifications apportées
+
+La réponse initiale de l'IA contenait des données en trop ou mal placées. Les modifications suivantes ont été faites :
+
+- **Carte de fidélité du passager** : retirée, car elle n'est pas nécessaire au fonctionnement décrit (vols, réservations, billets).
+- **Fonction de l'employé** : retirée, car elle fait doublon avec le rôle à bord, qui suffit à décrire le travail de l'employé sur un vol.
+- **Classe de voyage et poids de bagage** : ce sont des données propres au billet (le passager choisit son poids de bagage), et non au passager ou à la classe.
+
+Le dictionnaire compte donc **33 données**
+
+---
 
 ## Étape 2 : MCD
 
 **Outil de modélisation utilisé** : draw.io
 
-**Fichier source** : `[Lien draw.io](https://drive.google.com/file/d/1GQE_Xg7uJaPWITQxJn6EabNelp2B7sxK/view?usp=sharing)`
+**Fichier source** : [ProjetBD.drawio](https://drive.google.com/file/d/1GQE_Xg7uJaPWITQxJn6EabNelp2B7sxK/view?usp=sharing)
 
-![MCD du projet](mcd/ProjetBD.png)
+![MCD du projet](./mcd/ProjetBD.png)
 
-Contraintes (hors cardinalités)
+**Légende** : La mention `(id)` sur la branche VOL – EXPLOITER indique que l'entité VOL est une entité faible, identifiée relativement à LIGNE.
+
+### 2.1 Éléments de modélisation avancée
+
+- **Association récursive : SUPERVISER** (EMPLOYE – EMPLOYE). Un employé a au plus un supérieur (0,1), qui est lui-même un employé, et un employé peut superviser plusieurs personnes (0,n). Seul le directeur des opérations n'a pas de supérieur. Elle porte la donnée n° 20.
+- **Association ternaire : AFFECTER** (EMPLOYE, VOL, ROLE_A_BORD). Un employé tient un rôle précis sur un vol donné. Un vol a au moins deux employés (2,n) : un commandant de bord et un officier pilote de ligne.
+- **Entité faible : VOL**, identifiée par la date de départ relativement à LIGNE (entité forte). Un vol est l'exploitation d'une ligne à une date précise, donc le numéro de vol seul ne suffit pas à l'identifier.
+
+### 2.2 Choix de modélisation
+
+- **MODELE_AVION** est séparé de **AVION** : la capacité et le constructeur dépendent du modèle, pas de l'avion (3FN).
+- **LIGNE** est reliée à AEROPORT par deux associations, DEPART et ARRIVEE, ce qui permet de distinguer l'aéroport de départ et celui d'arrivée.
+- **RESERVATION** est séparée de **BILLET** : une réservation regroupe plusieurs billets et est faite par un seul passager.
+- **Classe**, **poids de bagage**, **prix** et **numéro de siège** sont des attributs de BILLET, car ils sont propres à chaque billet.
+
+### 2.3 Contraintes (hors cardinalités)
+
 - AFFECTER : un seul rôle par couple (employé, vol)
 - VOL : au moins 1 commandant de bord et 1 officier pilote de ligne
 - BILLET : un siège n'est attribué qu'une fois par vol
