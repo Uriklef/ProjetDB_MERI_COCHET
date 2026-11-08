@@ -1,0 +1,145 @@
+Donne les requêtes d’insertion permettant de remplir la base de données compagnie_aerienne dont le modèle relationnel est le suivant :
+
+
+MODELE_AVION(nom_modele, constructeur, capacite_sieges)
+AVION(immatriculation, date_mise_service, #nom_modele)
+AEROPORT(code_iata, nom_aeroport, ville, pays)
+LIGNE(numero_vol, distance_km, #code_iata_depart, #code_iata_arrivee)
+VOL(#numero_vol, date_depart, heure_depart, heure_arrivee, statut, #immatriculation)
+EMPLOYE(matricule, nom_employe, prenom_employe, date_embauche)
+SUPERVISER(#matricule_subordonne, #matricule_superieur)
+ROLE_A_BORD(libelle_role)
+AFFECTER(#matricule, #numero_vol, #date_depart, #libelle_role)
+PASSAGER(num_passeport, nom_passager, prenom_passager, date_naissance, email)
+RESERVATION(num_reservation, date_reservation, #num_passeport_reservant)
+BILLET(num_billet, prix, num_siege, classe, poids_bagage, #num_reservation, #num_passeport, #numero_vol, #date_depart)
+
+Les clés primaires sont :
+MODELE_AVION : nom_modele
+AVION : immatriculation
+AEROPORT : code_iata
+LIGNE : numero_vol
+VOL : (numero_vol, date_depart)
+EMPLOYE : matricule
+SUPERVISER : matricule_subordonne
+ROLE_A_BORD : libelle_role
+AFFECTER : (matricule, numero_vol, date_depart)
+PASSAGER : num_passeport
+RESERVATION : num_reservation
+BILLET : num_billet
+
+Les clés étrangères sont identifiées par # et font référence aux clés primaires des tables correspondantes.
+
+Certaines clés étrangères portent un nom différent :
+- code_iata_depart et code_iata_arrivee référencent AEROPORT(code_iata).
+- matricule_subordonne et matricule_superieur référencent EMPLOYE(matricule).
+- num_passeport_reservant référence PASSAGER(num_passeport).
+- (numero_vol, date_depart) dans AFFECTER et BILLET référence VOL(numero_vol, date_depart).
+Il doit y avoir :
+- 10 modèles d'avions.
+- 20 avions.
+- 15 aéroports.
+- 25 lignes aériennes.
+- 50 vols.
+- 30 employés.
+- 29 relations hiérarchiques dans SUPERVISER.
+- 4 rôles à bord.
+- Au moins 125 affectations.
+- 80 passagers.
+- 60 réservations.
+- Au moins 120 billets.
+Les 4 rôles à bord sont :
+- Commandant de bord
+- Officier pilote de ligne
+- Chef de cabine
+- Personnel de cabine
+Les statuts possibles sont :
+- Prévu
+- Retardé
+- Annulé
+- Effectué
+Les classes de voyage sont :
+- Économique
+- Premium
+- Affaires
+- Première
+Les données doivent respecter les règles métiers suivantes :
+- Chaque avion appartient à un modèle existant.
+- Chaque ligne relie deux aéroports différents.
+- Les codes IATA comportent 3 lettres.
+- Les numéros de vol sont composés de 2 lettres suivies de 1 à 4 chiffres.
+- Chaque vol correspond à une ligne existante et possède un avion.
+- Un avion ne doit pas assurer deux vols simultanément.
+- Chaque employé possède au maximum un supérieur hiérarchique.
+- Un seul employé, le directeur des opérations, n'a pas de supérieur.
+- Chaque vol doit avoir au moins un commandant de bord et un officier pilote de ligne.
+- Un employé ne peut avoir qu'un seul rôle sur un même vol.
+- Chaque réservation appartient à un passager existant et peut contenir plusieurs billets.
+- Chaque billet concerne un seul passager, un seul vol et une seule réservation.
+- Un même siège ne peut pas être attribué à deux billets sur un même vol à la même date.
+- Les numéros de billets comportent exactement 13 chiffres.
+- Les numéros de réservation comportent exactement 6 caractères.
+Les données doivent respecter les contraintes de validation suivantes :
+
+CHECK (capacite_sieges BETWEEN 1 AND 999);
+
+CHECK (distance_km BETWEEN 1 AND 99999);
+
+CHECK (heure_depart BETWEEN '00:00:00' AND '23:59:59');
+
+CHECK (heure_arrivee BETWEEN '00:00:00' AND '23:59:59');
+
+CHECK (statut IN ('Prévu', 'Retardé', 'Annulé', 'Effectué'));
+
+CHECK (libelle_role IN (
+'Commandant de bord',
+'Officier pilote de ligne',
+'Chef de cabine',
+'Personnel de cabine'
+));
+
+CHECK (email LIKE '%_@_%._%');
+
+CHECK (num_reservation LIKE '______');
+
+CHECK (num_billet LIKE '_____________');
+
+CHECK (prix >= 0);
+
+CHECK (num_siege <> '');
+
+CHECK (classe IN ('Économique', 'Premium', 'Affaires', 'Première'));
+
+CHECK (poids_bagage BETWEEN 0 AND 99);
+
+Les clés étrangères doivent faire référence à des clés primaires existantes.
+
+Donne les lignes en commençant par remplir les tables dans lesquelles il n'y a pas de clés étrangères, puis les tables dont les clés étrangères font référence à des clés primaires des tables déjà remplies.
+
+Utilise des données réalistes et variées :
+- Des constructeurs et modèles d'avions connus comme Airbus et Boeing.
+- Des aéroports de différents pays avec des codes IATA cohérents.
+- Des trajets réalistes avec des distances cohérentes.
+- Des dates et horaires de vols plausibles.
+- Des noms et prénoms d'employés et de passagers d'origines variées, avec des hommes et des femmes.
+- Des prix de billets variés selon les classes et les distances.
+- Des réservations comprenant parfois plusieurs billets.
+Les données personnelles doivent être fictives.
+
+Le script doit commencer par :
+
+USE compagnie_aerienne;
+
+Utilise des instructions INSERT INTO compatibles avec MySQL 8.4.
+
+Tu peux regrouper plusieurs lignes dans une même instruction INSERT.
+
+Ne recrée pas les tables et ne redéfinis pas les contraintes, car elles existent déjà.
+
+Ne désactive pas les vérifications des clés étrangères ni les contraintes de validation.
+
+Assure-toi que toutes les insertions respectent le modèle relationnel et qu'aucune ne provoque d'erreur SQL.
+
+Fournis l'intégralité du script SQL prêt à être exécuté dans MySQL Workbench et enregistré dans 3_insertion.sql.
+
+Ne remplace aucune partie du script par des points de suspension ou des exemples incomplets.
