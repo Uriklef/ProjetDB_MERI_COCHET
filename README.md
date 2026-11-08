@@ -172,9 +172,8 @@ Le MPD et les contraintes sont dans les 2 fichiers sql
 
 ## Etape 4 : Insertions des données
 
-Voici le prompt adapté du TP1 qu'on a utilisé : 
+Voici le prompt adapté du TP1 qu'on a utilisé :
 
-<CodeBlock language="markdown" editable>
 ```text
 Donne les requêtes d’insertion permettant de remplir la base de données compagnie_aerienne dont le modèle relationnel est le suivant :
 
@@ -276,7 +275,7 @@ CHECK (libelle_role IN (
 'Personnel de cabine'
 ));
 
-CHECK (email LIKE '%@%._%');
+CHECK (email LIKE '%_@_%._%');
 
 CHECK (num_reservation LIKE '______');
 
@@ -284,9 +283,7 @@ CHECK (num_billet LIKE '_____________');
 
 CHECK (prix >= 0);
 
-CHECK (num_siege 
-
-'');
+CHECK (num_siege <> '');
 
 CHECK (classe IN ('Économique', 'Premium', 'Affaires', 'Première'));
 
@@ -324,6 +321,6 @@ Fournis l'intégralité du script SQL prêt à être exécuté dans MySQL Workbe
 
 Ne remplace aucune partie du script par des points de suspension ou des exemples incomplets.
 
-</CodeBlock>
+```
 
 Ce qui nous a donné le fichier 3_insertion.sql
