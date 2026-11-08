@@ -131,3 +131,29 @@ Le dictionnaire compte donc **33 données**
 - BILLET : un siège n'est attribué qu'une fois par vol
 - LIGNE : aéroport de départ différent de l'aéroport d'arrivée
 - AVION : jamais deux vols simultanés
+
+## Etape 3 : MLD
+
+MODELE_AVION(nom_modele, constructeur, capacite_sieges)
+
+AVION(immatriculation, date_mise_service, #nom_modele)
+
+AEROPORT(code_iata, nom_aeroport, ville, pays)
+
+LIGNE(numero_vol, distance_km, #code_iata_depart, #code_iata_arrivee)
+
+VOL(#numero_vol, date_depart, heure_depart, heure_arrivee, statut, #immatriculation)
+
+EMPLOYE(matricule, nom_employe, prenom_employe, date_embauche)
+
+SUPERVISER(#matricule_subordonne, #matricule_superieur)
+
+ROLE_A_BORD(libelle_role)
+
+AFFECTER(#matricule, #numero_vol, #date_depart, #libelle_role)
+
+PASSAGER(num_passeport, nom_passager, prenom_passager, date_naissance, email)
+
+RESERVATION(num_reservation, date_reservation, #num_passeport_reservant)
+
+BILLET(num_billet, prix, num_siege, classe, poids_bagage, #num_reservation, #num_passeport, #numero_vol, #date_depart)
