@@ -324,3 +324,92 @@ Ne remplace aucune partie du script par des points de suspension ou des exemples
 ```
 
 Ce qui nous a donné le fichier 3_insertion.sql
+
+
+---
+
+## Étape 5 : Interrogation de la BD
+
+### 5.1 Scénario d'utilisation
+
+**Rôle** : Responsable de l'exploitation et du revenue management.  
+**Contexte** : Bilan de la période du 2 novembre au 19 décembre 2026 pour le comité de direction.
+
+| Domaine d'analyse | Données recherchées | Requêtes (`4_interrogation.sql`) |
+|---|---|---|
+| **Réseau & Programme** | Liste des pays desservis, lignes long-courrier, programme global des vols, aéroports sans départ | 1.1, 1.2, 3.1, 4.1 |
+| **Ponctualité & Flotte** | Vols retardés/annulés, avions les plus utilisés, avions ayant subi des perturbations | 1.3, 2.5, 4.3 |
+| **Bilan Commercial** | Chiffre d'affaires par classe, réservations de groupe, passagers en Première, recherche nominative, passagers sans réservation propre, anomalies tarifaires | 1.4, 1.5, 2.2, 2.3, 2.4, 3.2, 4.2, 4.4, 4.5 |
+| **Ressources Humaines** | Composition de l'équipage d'un vol, hiérarchie du personnel | 3.4, 3.5 |
+
+
+### 5.2 Étude d'optimisation du plan d'exécution
+
+#### Requête analysée
+Recherche du numéro, du prix et de la date de départ des billets Affaires pour les vols au départ de Paris-CDG.
+
+```sql
+SELECT b.num_billet, b.prix, b.date_depart
+FROM BILLET b
+JOIN VOL v   ON v.numero_vol = b.numero_vol AND v.date_depart = b.date_depart
+JOIN LIGNE l ON l.numero_vol = v.numero_vol
+WHERE b.classe = 'Affaires'
+  AND l.code_iata_depart = 'CDG';
+```
+
+**Expression en algèbre relationnelle** :
+$$\pi_{\text{num\_billet, prix, date\_depart}} \left( \sigma_{\text{classe='Affaires'}} (\text{BILLET}) \bowtie \text{VOL} \bowtie \sigma_{\text{code\_iata\_depart='CDG'}} (\text{LIGNE}) \right)$$
+
+**Volumétrie des tables** : `BILLET` (150 lignes), `VOL` (50 lignes), `LIGNE` (25 lignes).
+
+#### Règles de calcul du coût (exercice 6 du TD3)
+- Sélection $\sigma$ sur $R$ : $\vert R \vert$ instructions.
+- Jointure $R \bowtie S$ : $\vert R \vert \times \vert S \vert$ instructions.
+- Projection $\pi$ sur $R$ : $\vert R \vert$ instructions.
+
+---
+
+#### Comparaison des plans d'exécution
+
+##### Plan 1 : Jointures d'abord, sélections à la fin
+1. $\text{BILLET} \bowtie \text{VOL}$ : $150 \times 50 = 7\,500$ ins. (150 lignes)
+2. $(\text{BILLET} \bowtie \text{VOL}) \bowtie \text{LIGNE}$ : $150 \times 25 = 3\,750$ ins. (150 lignes)
+3. $\sigma_{\text{classe='Affaires'} \wedge \text{code\_iata\_depart='CDG'}}$ : $150$ ins. (16 lignes)
+4. $\pi_{\text{num\_billet, prix, date\_depart}}$ : $16$ ins. (16 lignes)  
+**Coût total : 11 416 instructions**
+
+##### Plan 2 : Sélections poussées avant les jointures
+1. $\sigma_{\text{classe='Affaires'}} (\text{BILLET})$ : $150$ ins. (25 lignes)
+2. $\sigma_{\text{code\_iata\_depart='CDG'}} (\text{LIGNE})$ : $25$ ins. (13 lignes)
+3. $\text{BILLET}' \bowtie \text{VOL}$ : $25 \times 50 = 1\,250$ ins. (25 lignes)
+4. $(\text{BILLET}' \bowtie \text{VOL}) \bowtie \text{LIGNE}'$ : $25 \times 13 = 325$ ins. (16 lignes)
+5. $\pi_{\text{num\_billet, prix, date\_depart}}$ : $16$ ins. (16 lignes)  
+**Coût total : 1 766 instructions**
+
+##### Plan 3 : Sélections poussées + Ordre de jointure ($\text{VOL} \bowtie \text{LIGNE}$) (Optimisé)
+1. $\sigma_{\text{classe='Affaires'}} (\text{BILLET})$ : $150$ ins. (25 lignes)
+2. $\sigma_{\text{code\_iata\_depart='CDG'}} (\text{LIGNE})$ : $25$ ins. (13 lignes)
+3. $\text{VOL} \bowtie \text{LIGNE}'$ : $50 \times 13 = 650$ ins. (26 lignes)
+4. $\text{BILLET}' \bowtie (\text{VOL} \bowtie \text{LIGNE}')$ : $25 \times 26 = 650$ ins. (16 lignes)
+5. $\pi_{\text{num\_billet, prix, date\_depart}}$ : $16$ ins. (16 lignes)  
+**Coût total : 1 491 instructions**
+
+---
+
+#### Arbre du plan d'exécution optimisé (Plan 3)
+
+![Plan d'exécution optimisé](./resultat_relax.jpg)
+
+#### Synthèse et conclusion
+
+| Plan | Instructions | Gain vs Plan 1 |
+|---|---:|---:|
+| **Plan 1** (Naïf) | 11 416 | - |
+| **Plan 2** (Sélections anticipées) | 1 766 | x 6.5 |
+| **Plan 3** (Optimisé) | **1 491** | **x 7.7** |
+
+**Conclusion** :  
+Le **Plan 3** est le plus efficient avec **1 491 instructions** (gain d'un facteur 7,7 par rapport au Plan 1).  
+L'optimisation s'explique par deux leviers majeurs :
+1. **Anticiper les sélections** : réduction immédiate de la table `BILLET` de 150 à 25 lignes et de `LIGNE` de 25 à 13 lignes avant toute jointure.
+2. **Optimiser l'ordre des jointures** : réaliser en premier la jointure $\text{VOL} \bowtie \sigma(\text{LIGNE})$ traite une relation intermédiaire très faible ($50 \times 13 = 650$) avant la jointure finale.
